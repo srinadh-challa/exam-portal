@@ -484,9 +484,11 @@ const ExamPortal = () => {
 
       {/* Webcam Preview */}
       {examStarted && (
-        <div className={` duration-500 fixed top-48 ${
-          isMinimized ? "fixed top-20 " : "z-50"
-        } left-4 `}>
+        <div
+        className={`duration-500 fixed ${
+          isMinimized ? "top-20 right-4" : "top-20 right-4 z-50"
+        }`}
+      >
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-2" style={{ width: '180px' }}>
             <div className="relative">
               <video
