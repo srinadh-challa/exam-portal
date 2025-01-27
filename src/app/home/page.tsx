@@ -1,20 +1,27 @@
 "use client"
 
-import React, { useState, useEffect, useRef, ChangeEvent } from "react";
+import React, { useState, useEffect, useRef} from "react";
 import { Timer, Home, BookOpen, Brain, Code, Mail, RedoDot, ArrowLeft, ArrowRight, Camera, VideoOff, AlertCircle } from "lucide-react";
-
 type AnswersType = {
   [key: string]: string;
 };
-import { ArrowsPointingOutIcon, ArrowsPointingInIcon } from "@heroicons/react/24/solid";
+import CodeEditor from "../EditorComponent/Editor";
 
-
-
-interface TestCaseResult {
-  status: "correct" | "wrong";
-  actualOutput: string;
+interface Question {
+  id: number;
+  text: string;
+  options: string[];
 }
-{/*--------*/}
+
+interface Section {
+  title: string;
+  questions: Question[];
+}
+
+interface ExamSections {
+  [key: string]: Section; // Allow dynamic keys like "mcqs", "aptitude", etc.
+}
+
 
 
 const ExamPortal = () => {
@@ -29,19 +36,12 @@ const ExamPortal = () => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const [isContainerVisible, setIsContainerVisible] = useState(false);
-  const [isSection4Visible, setIsSection4Visible] = useState(true);
+  const [isSection4Visible, setIsSection4Visible] = useState(true);  
+  const [examSectionsNew, setExamSections] = useState<ExamSections>({});
+  const [selectedTitle, setSelectedTitle] = useState("Multiple Choice Questions"); // Default selected title
 
-  
-  const [code, setCode] = useState<string>("// Start coding here...");
-  const [language, setLanguage] = useState<string>("Python");
-  const [isFullScreen, setIsFullScreen] = useState<boolean>(false);
-  const [output, setOutput] = useState<TestCaseResult[]>([]);
-  const [showOutputSection, setShowOutputSection] = useState<boolean>(false);
+   
 
-  // const [currentSection, setCurrentSection] = useState('coding'); // Default to Section 4
-  // const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0); // Default to Question 1
-
-  // const [isPreviewExpanded, setIsPreviewExpanded] = useState<boolean>(false);
 
   const userEmail = "sriram.lnrs@gmail.com";
   
@@ -58,6 +58,7 @@ const ExamPortal = () => {
   // };
 
   // Initialize camera when exam starts
+  
   useEffect(() => {
     if (examStarted && !cameraEnabled) {
       initializeCamera();
@@ -110,71 +111,102 @@ const ExamPortal = () => {
     }
   };
 
-  type ExamSection = {
-    title: string;
-    questions: {
-      id: number;
-      text: string;
-      options: string[];
-    }[];
-  };
+  // type ExamSection = {
+  //   title: string;
+  //   questions: {
+  //     id: number;
+  //     text: string;
+  //     options: string[];
+  //   }[];
+  // };
 
   // Sample questions data structure
-  const examSections: Record<string, ExamSection> = {
-    mcqs: {
-      title: "Multiple Choice Questions",
-      questions: [
-        { id: 1, text: "What is the capital of France?", options: ["London", "Berlin", "Paris", "Madrid"] },
-        { id: 2, text: "Which programming language is known as the 'mother of all programming languages'?", options: ["C", "Assembly", "FORTRAN", "ALGOL"] },
-        { id: 3, text: "Who is considered the father of computer science?", options: ["Alan Turing", "Charles Babbage", "John von Neumann", "Ada Lovelace"] },
-        { id: 4, text: "What does CPU stand for?", options: ["Central Processing Unit", "Computer Processing Unit", "Central Program Utility", "Computer Program Unit"] },
-        { id: 5, text: "Which company developed the Java programming language?", options: ["Microsoft", "Sun Microsystems", "IBM", "Oracle"] },
-        { id: 6, text: "What is the primary function of RAM?", options: ["Permanent Storage", "Temporary Storage", "Processing Data", "Data Transfer"] },
-        { id: 7, text: "What does HTML stand for?", options: ["Hyper Text Markup Language", "High Text Making Language", "Hyper Transfer Markup Language", "High Transfer Making Language"] },
-        { id: 8, text: "Which protocol is used for sending emails?", options: ["HTTP", "FTP", "SMTP", "TCP"] },
-        { id: 9, text: "What is the smallest unit of digital information?", options: ["Byte", "Bit", "Nibble", "Word"] },
-        { id: 10, text: "Which company created React.js?", options: ["Google", "Facebook", "Amazon", "Microsoft"] },
-      ]
-    },
-    aptitude: {
-      title: "Aptitude Test",
-      questions: [
-        { id: 1, text: "If a train travels 420 kilometers in 7 hours, what is its speed in kilometers per hour?", options: ["50 km/h", "60 km/h", "65 km/h", "70 km/h"] },
-        { id: 2, text: "A computer program runs in 0.08 seconds. How many times can it run in 2 minutes?", options: ["1200", "1500", "1800", "2000"] },
-        { id: 3, text: "If 3 developers can build an app in 12 days, how many days will it take 4 developers?", options: ["9 days", "8 days", "10 days", "11 days"] },
-        { id: 4, text: "What comes next in the sequence: 2, 6, 12, 20, ?", options: ["28", "30", "32", "34"] },
-        { id: 5, text: "A server processes 4000 requests per minute. How many requests can it process in 2.5 hours?", options: ["600,000", "480,000", "520,000", "550,000"] },
-        { id: 6, text: "Find the missing number: 8, 27, 64, ?, 216", options: ["125", "128", "132", "144"] },
-        { id: 7, text: "If a code review takes 45 minutes, how many can be completed in a 6-hour workday?", options: ["8", "7", "6", "9"] },
-        { id: 8, text: "What percentage of 250GB is 40GB?", options: ["16%", "20%", "15%", "18%"] },
-        { id: 9, text: "Solve: (2^6 × 2^4) ÷ 2^7", options: ["8", "16", "32", "64"] },
-        { id: 10, text: "If a function takes 100ms to execute, how many times can it run in 3 seconds?", options: ["30", "20", "25", "35"] }
-      ]
-    },
-    ai: {
-      title: "Artificial Intelligence",
-      questions: [
-        { id: 1, text: "Which of these is NOT a type of machine learning?", options: ["Supervised Learning", "Unsupervised Learning", "Peripheral Learning", "Reinforcement Learning"] },
-        { id: 2, text: "What is the purpose of the activation function in neural networks?", options: ["Data Storage", "Introduce Non-linearity", "Data Cleaning", "Memory Management"] },
-        { id: 3, text: "Which algorithm is commonly used for image classification?", options: ["Linear Regression", "CNN", "Decision Trees", "Bubble Sort"] },
-        { id: 4, text: "What does NLP stand for in AI?", options: ["Natural Language Processing", "Neural Linear Programming", "Natural Learning Process", "Network Language Protocol"] },
-        { id: 5, text: "Which loss function is typically used for binary classification?", options: ["Mean Squared Error", "Binary Cross-Entropy", "Categorical Cross-Entropy", "Hinge Loss"] },
-        { id: 6, text: "What is the purpose of dropout in neural networks?", options: ["Speed up training", "Prevent overfitting", "Increase accuracy", "Data preprocessing"] },
-        { id: 7, text: "Which of these is a popular deep learning framework?", options: ["Jenkins", "Docker", "TensorFlow", "Kubernetes"] },
-        { id: 8, text: "What is the main purpose of feature scaling in machine learning?", options: ["Reduce memory usage", "Normalize input ranges", "Speed up processing", "Increase accuracy"] },
-        { id: 9, text: "Which algorithm is used for recommendation systems?", options: ["Collaborative Filtering", "Bubble Sort", "Binary Search", "Quick Sort"] },
-        { id: 10, text: "What is the purpose of backpropagation in neural networks?", options: ["Data cleaning", "Weight optimization", "Data storage", "Input validation"] }
-      ]
-    },
-    coding: {
-      title: "Coding Challenge",
-      questions: [
-        { id: 1, text: "Create a program to manage a library's book collection", options: ["number", "string", "undefined", "object"] },
-        { id: 2, text: "Create a real-time chat application with the following features User Authentication, Real-Time Messaging, Private Messaging", options: ["pop()", "push()", "shift()", "unshift()"] }
-      ]
-    }
-  };
+  // const examSections: Record<string, ExamSection> = {
+  //   mcqs: {
+  //     title: "Multiple Choice Questions",
+  //     questions: [
+  //       { id: 1, text: "What is the capital of France?", options: ["London", "Berlin", "Paris", "Madrid"] },
+  //       { id: 2, text: "Which programming language is known as the 'mother of all programming languages'?", options: ["C", "Assembly", "FORTRAN", "ALGOL"] },
+  //       { id: 3, text: "Who is considered the father of computer science?", options: ["Alan Turing", "Charles Babbage", "John von Neumann", "Ada Lovelace"] },
+  //       { id: 4, text: "What does CPU stand for?", options: ["Central Processing Unit", "Computer Processing Unit", "Central Program Utility", "Computer Program Unit"] },
+  //       { id: 5, text: "Which company developed the Java programming language?", options: ["Microsoft", "Sun Microsystems", "IBM", "Oracle"] },
+  //       { id: 6, text: "What is the primary function of RAM?", options: ["Permanent Storage", "Temporary Storage", "Processing Data", "Data Transfer"] },
+  //       { id: 7, text: "What does HTML stand for?", options: ["Hyper Text Markup Language", "High Text Making Language", "Hyper Transfer Markup Language", "High Transfer Making Language"] },
+  //       { id: 8, text: "Which protocol is used for sending emails?", options: ["HTTP", "FTP", "SMTP", "TCP"] },
+  //       { id: 9, text: "What is the smallest unit of digital information?", options: ["Byte", "Bit", "Nibble", "Word"] },
+  //       { id: 10, text: "Which company created React.js?", options: ["Google", "Facebook", "Amazon", "Microsoft"] },
+  //     ]
+  //   },
+  //   aptitude: {
+  //     title: "Aptitude Test",
+  //     questions: [
+  //       { id: 1, text: "If a train travels 420 kilometers in 7 hours, what is its speed in kilometers per hour?", options: ["50 km/h", "60 km/h", "65 km/h", "70 km/h"] },
+  //       { id: 2, text: "A computer program runs in 0.08 seconds. How many times can it run in 2 minutes?", options: ["1200", "1500", "1800", "2000"] },
+  //       { id: 3, text: "If 3 developers can build an app in 12 days, how many days will it take 4 developers?", options: ["9 days", "8 days", "10 days", "11 days"] },
+  //       { id: 4, text: "What comes next in the sequence: 2, 6, 12, 20, ?", options: ["28", "30", "32", "34"] },
+  //       { id: 5, text: "A server processes 4000 requests per minute. How many requests can it process in 2.5 hours?", options: ["600,000", "480,000", "520,000", "550,000"] },
+  //       { id: 6, text: "Find the missing number: 8, 27, 64, ?, 216", options: ["125", "128", "132", "144"] },
+  //       { id: 7, text: "If a code review takes 45 minutes, how many can be completed in a 6-hour workday?", options: ["8", "7", "6", "9"] },
+  //       { id: 8, text: "What percentage of 250GB is 40GB?", options: ["16%", "20%", "15%", "18%"] },
+  //       { id: 9, text: "Solve: (2^6 × 2^4) ÷ 2^7", options: ["8", "16", "32", "64"] },
+  //       { id: 10, text: "If a function takes 100ms to execute, how many times can it run in 3 seconds?", options: ["30", "20", "25", "35"] }
+  //     ]
+  //   },
+  //   ai: {
+  //     title: "Artificial Intelligence",
+  //     questions: [
+  //       { id: 1, text: "Which of these is NOT a type of machine learning?", options: ["Supervised Learning", "Unsupervised Learning", "Peripheral Learning", "Reinforcement Learning"] },
+  //       { id: 2, text: "What is the purpose of the activation function in neural networks?", options: ["Data Storage", "Introduce Non-linearity", "Data Cleaning", "Memory Management"] },
+  //       { id: 3, text: "Which algorithm is commonly used for image classification?", options: ["Linear Regression", "CNN", "Decision Trees", "Bubble Sort"] },
+  //       { id: 4, text: "What does NLP stand for in AI?", options: ["Natural Language Processing", "Neural Linear Programming", "Natural Learning Process", "Network Language Protocol"] },
+  //       { id: 5, text: "Which loss function is typically used for binary classification?", options: ["Mean Squared Error", "Binary Cross-Entropy", "Categorical Cross-Entropy", "Hinge Loss"] },
+  //       { id: 6, text: "What is the purpose of dropout in neural networks?", options: ["Speed up training", "Prevent overfitting", "Increase accuracy", "Data preprocessing"] },
+  //       { id: 7, text: "Which of these is a popular deep learning framework?", options: ["Jenkins", "Docker", "TensorFlow", "Kubernetes"] },
+  //       { id: 8, text: "What is the main purpose of feature scaling in machine learning?", options: ["Reduce memory usage", "Normalize input ranges", "Speed up processing", "Increase accuracy"] },
+  //       { id: 9, text: "Which algorithm is used for recommendation systems?", options: ["Collaborative Filtering", "Bubble Sort", "Binary Search", "Quick Sort"] },
+  //       { id: 10, text: "What is the purpose of backpropagation in neural networks?", options: ["Data cleaning", "Weight optimization", "Data storage", "Input validation"] }
+  //     ]
+  //   },
+  //   coding: {
+  //     title: "Coding Challenge",
+  //     questions: [
+  //       { id: 1, text: "Create a program to manage a library's book collection", options: ["number", "string", "undefined", "object"] },
+  //       { id: 2, text: "Create a real-time chat application with the following features User Authentication, Real-Time Messaging, Private Messaging", options: ["pop()", "push()", "shift()", "unshift()"] }
+  //     ]
+  //   }
+  // };
+    // Fetch data from the backend
+    
+    useEffect(() => {
+      const fetchExamSections = async () => {
+        try {
+          const response = await fetch("http://localhost:5000/api/exam-sections");
+          if (!response.ok) {
+            throw new Error("Failed to fetch exam sections");
+          }
+          const data = await response.json();
+      // Validate data and filter unwanted keys
+      if (Array.isArray(data) && data[0]) {
+        const filteredSections = Object.entries(data[0])
+          .filter(([key]) => key !== "_id" && key !== "__v" && key !== "coding") // Filter out unwanted keys
+          .reduce((acc, [key, value]) => {
+            acc[key] = value as Section; // Explicitly assert or ensure value is of type Section
+            return acc;
+          }, {} as ExamSections);
 
+        console.log("Fetched exam sections:", filteredSections);
+        setExamSections(filteredSections); // Save formatted object to state
+      } 
+      else {
+        console.warn("Unexpected data structure:", data);
+      }
+        } catch (error) {
+          console.error("Error fetching exam sections:", error);
+        }
+      };      
+      fetchExamSections();      
+    }, [examStarted]);
+  
   useEffect(() => {
     let timer: NodeJS.Timeout | undefined;
     if (examStarted && timeLeft > 0) {
@@ -200,24 +232,65 @@ const ExamPortal = () => {
 
   const handleAutoSubmit = () => {
     console.log("Auto-submitting exam...", answers);
+    console.log("Submitting exam sections...", examSectionsNew);
   };
 
   const handleStartExam = () => {
     setExamStarted(true);
     setCurrentSection("mcqs");
     setCurrentQuestionIndex(0);
+
+    const element = document.documentElement; // Get the root HTML element
+    if (element.requestFullscreen) {
+      element.requestFullscreen();
+    } 
   };  
 
-  const handleSectionChange = (section: keyof typeof examSections) => {
+  // useEffect(() => {
+  //   if (!examStarted) return;
+  //   const handleVisibilityChange = () => {
+  //     if (document.visibilityState === "hidden") {
+  //       alert("Tab switching is not allowed during the exam. The exam will now be submitted.");
+  //       handleAutoSubmit(); // Automatically submit the exam or take appropriate action
+  //     }
+  //   };
+  
+  //   document.addEventListener("visibilitychange", handleVisibilityChange);
+  
+  //   return () => {
+  //     document.removeEventListener("visibilitychange", handleVisibilityChange);
+  //   };
+  // }, [examStarted]);
+
+  useEffect(() => {
+    if (!examStarted) return;
+    const handleFullscreenChange = () => {
+      if (!document.fullscreenElement) {
+        alert("Exiting full-screen mode is not allowed. The exam will now be submitted.");
+        handleAutoSubmit();
+      }
+    };
+  
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+  
+    return () => {
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+    };
+  }, [examStarted]);
+  
+  const handleSectionChange = (section: keyof typeof examSectionsNew) => {
     if (!examStarted && section !== "home") return;
+    console.log("Changing section to:", section);
     if (section === "coding"){
       setIsContainerVisible(true)
       setIsSection4Visible(false);
+      setSelectedTitle("Coding Challenge");
+      console.log(selectedTitle)
     }
     else{setIsContainerVisible(false);
       setIsSection4Visible(true);
     }
-    setCurrentSection(section);
+    setCurrentSection(section as string);
     setCurrentQuestionIndex(0);
   };
 
@@ -228,10 +301,10 @@ const ExamPortal = () => {
 
 
   const handleNextQuestion = () => {
-    if (currentQuestionIndex < examSections[currentSection].questions.length - 1) {
+    if (currentQuestionIndex < examSectionsNew[currentSection].questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
-    } else if (Object.keys(examSections).indexOf(currentSection) < Object.keys(examSections).length - 1) {
-      const sections = Object.keys(examSections);
+    } else if (Object.keys(examSectionsNew).indexOf(currentSection) < Object.keys(examSectionsNew).length - 1) {
+      const sections = Object.keys(examSectionsNew);
       const nextSection = sections[sections.indexOf(currentSection) + 1];
       setCurrentSection(nextSection);
       setCurrentQuestionIndex(0);
@@ -241,11 +314,11 @@ const ExamPortal = () => {
   const handlePreviousQuestion = () => {
     if (currentQuestionIndex > 0) {
       setCurrentQuestionIndex(currentQuestionIndex - 1);
-    } else if (Object.keys(examSections).indexOf(currentSection) > 0) {
-      const sections = Object.keys(examSections);
+    } else if (Object.keys(examSectionsNew).indexOf(currentSection) > 0) {
+      const sections = Object.keys(examSectionsNew);
       const prevSection = sections[sections.indexOf(currentSection) - 1];
       setCurrentSection(prevSection);
-      setCurrentQuestionIndex(examSections[prevSection].questions.length - 1);
+      setCurrentQuestionIndex(examSectionsNew[prevSection].questions.length - 1);
     }
   };
 
@@ -337,39 +410,7 @@ const ExamPortal = () => {
   //   return renderQuestionContent();
   // };
   
-  const expectedOutputs = ["much very program this like i", "mno pqr"];
-
-  const handleLanguageChange = (e: ChangeEvent<HTMLSelectElement>) => {
-    setLanguage(e.target.value);
-    setCode(`// Start coding in ${e.target.value.toLowerCase()} here...`);
-  };
-
-  const toggleFullScreen = () => {
-    setIsFullScreen(!isFullScreen);
-  };
-
-  const handleRun = () => {
-    const simulatedOutputs = [
-      "much very program this like i", // Correct simulated output for test case 1
-      "mno pq" // Intentional mistake in the output for test case 2
-    ];
-
-    const results: TestCaseResult[] = simulatedOutputs.map((actualOutput, index) => ({
-      status: actualOutput === expectedOutputs[index] ? "correct" : "wrong",
-      actualOutput
-    }));
-
-    setOutput(results);
-    setShowOutputSection(true);
-  };
-
-  const handleReset = () => {
-    setCode("// Start coding here...");
-    setOutput([]);
-    setShowOutputSection(false);
-  };
-
-
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
       {/* Header */}
@@ -496,7 +537,8 @@ const ExamPortal = () => {
               </button>
 
               {/* {Object.entries(examSections).map(([section, data], index) => ( */}
-              {Object.entries(examSections).map(([section], index) => (
+              {Object.entries(examSectionsNew)
+              .map(([section], index) => (
                 <button
                   key={section}
                   onClick={() => handleSectionChange(section)}
@@ -510,8 +552,8 @@ const ExamPortal = () => {
                   {index === 2 && <RedoDot className="w-5 h-5" />}
                   {index === 3 && <Code className="w-5 h-5" />}
                   <span className="font-medium">
-                    Section {index + 1}
-                  </span>
+                      Section {index + 1} 
+                  </span>    
                 </button>
               ))}
               {examStarted && (
@@ -529,7 +571,7 @@ const ExamPortal = () => {
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg sticky top-24 p-2">
               <h3 className="font-small text-gray-600 dark:text-gray-300 mb-3">Questions</h3>
               <div className="flex flex-col space-y-2">
-                {examSections[currentSection].questions.map((_, idx) => (
+                {examSectionsNew[currentSection].questions.map((_, idx) => (
                   <button
                     key={idx}
                     onClick={() => handleQuestionChange(idx)}
@@ -541,7 +583,7 @@ const ExamPortal = () => {
                           : 'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600'
                       }`}
                   >
-                    {/* Question*/} {idx + 1} 
+                    {/* Question*/} {idx + 1}
                   </button>
                 ))}
               </div>
@@ -587,7 +629,6 @@ const ExamPortal = () => {
                       </li>
                     </ul>
                   </div>
-
                   <div className="bg-yellow-50 dark:bg-yellow-900/30 p-6 rounded-xl">
                     <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-100">
                       Before You Begin
@@ -636,10 +677,10 @@ const ExamPortal = () => {
                         Question {currentQuestionIndex + 1}
                       </h3>
                       <p className="text-gray-700 dark:text-gray-300 text-lg mb-6">
-                      {examSections[currentSection].questions[currentQuestionIndex].text}
+                      {examSectionsNew[currentSection].questions[currentQuestionIndex].text}
                       </p>
                       <div className="space-y-3">
-                      {examSections[currentSection].questions[currentQuestionIndex].options.map((option, idx) => (
+                      {examSectionsNew[currentSection].questions[currentQuestionIndex].options.map((option, idx) => (
                       <button key={idx} onClick={() => handleAnswerSelect(currentQuestionIndex + 1, option)}
                       className={`w-full text-left p-4 rounded-xl transition-all ${answers[`${currentSection}-${currentQuestionIndex + 1}`] === option
                       ? "bg-blue-100 dark:bg-blue-900/50 border-blue-500 dark:border-blue-400 border-2"
@@ -679,110 +720,25 @@ const ExamPortal = () => {
                 )}
           </div>
         )}
-                      {isContainerVisible && (
+                      {isContainerVisible  && (
                         <div>
-                        <div className={`flex ${isFullScreen ? "h-screen" : "flex-row h-screen"} bg-gray-800`} >
-                          {!isFullScreen && (
+                        <div className={`flex bg-gray-800`} >
                             <div className="w-1/2 bg-gray-800 shadow-lg rounded p-6 overflow-auto">
                             <div className="flex">
                               <div className="bg-white dark:bg-gray-800 rounded-lg">
                               <h3 className="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-100">
-                                Question {currentQuestionIndex + 1}
+                                Question {currentQuestionIndex + 1} 
                               </h3>
                               <p className="text-gray-700 dark:text-gray-300 text-lg mb-6">
-                              {examSections[currentSection].questions[currentQuestionIndex].text}
+                              {examSectionsNew[currentSection].questions[currentQuestionIndex].text}
                               </p>
-                              
                               </div>                 
                             </div>
                             </div>
-                          )}
-                    
                           <div
-                            className={`${
-                              isFullScreen ? "w-full" : "w-1/2"
-                            } flex flex-col bg-gray-900 text-gray-300 rounded-md overflow-hidden`}
+                            className={`bg-gray-900 text-gray-300 rounded-md overflow-hidden`}
                           >
-                            <div className="p-3 bg-gray-800 flex justify-between items-center text-sm text-gray-400">
-                              <div className="flex items-center space-x-2">
-                                <label htmlFor="language" className="text-gray-300">
-                                  Language:
-                                </label>
-                                <select
-                                  id="language"
-                                  value={language}
-                                  onChange={handleLanguageChange}
-                                  className="bg-gray-700 text-gray-300 px-2 py-1 rounded outline-none"
-                                >
-                                  <option value="Python">Python</option>
-                                  <option value="Java">Java</option>
-                                  <option value="C">C</option>
-                                  <option value="C++">C++</option>
-                                  <option value="JavaScript">JavaScript</option>
-                                  <option value="R">R</option>
-                                  <option value="SQL">SQL</option>
-                                </select>
-                              </div>
-                    
-                              <button
-                                onClick={toggleFullScreen}
-                                className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded text-sm flex items-center"
-                              >
-                                {isFullScreen ? (
-                                  <ArrowsPointingInIcon className="h-5 w-5" />
-                                ) : (
-                                  <ArrowsPointingOutIcon className="h-5 w-5" />
-                                )}
-                              </button>
-                            </div>
-                    
-                            <textarea
-                              className="flex-grow bg-gray-900 text-gray-300 p-4 font-mono text-sm outline-none"
-                              value={code}
-                              onChange={(e) => setCode(e.target.value)}
-                            ></textarea>
-                    
-                            {showOutputSection && (
-                              <div className="p-3 bg-gray-800">
-                                <h3 className="text-gray-400 text-sm font-semibold mb-2">Output</h3>
-                                {output.map((result, index) => (
-                                  <div key={index} className="flex items-center space-x-4 mb-3">
-                                    <div className="w-1/3 bg-gray-700 text-gray-300 p-2 rounded">
-                                      {`Test Case ${index + 1}`}
-                                    </div>
-                                    <div className="w-1/3 bg-gray-700 text-gray-300 p-2 rounded">
-                                      {`Expected: ${expectedOutputs[index]}`}
-                                    </div>
-                                    <div className="w-1/3 bg-gray-700 text-gray-300 p-2 rounded flex items-center">
-                                      {`Actual: ${result.actualOutput}`}
-                                      {result.status === "correct" ? (
-                                        <span className="text-green-500 ml-2">✅</span>
-                                      ) : (
-                                        <span className="text-red-500 ml-2">❌</span>
-                                      )}
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-                    
-                            <div className="flex p-3 bg-gray-800 space-x-2">
-                              <button
-                                onClick={handleRun}
-                                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded text-sm"
-                              >
-                                Run
-                              </button>
-                              {/* <button className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded text-sm">
-                                Submit
-                              </button> */}
-                              <button
-                                onClick={handleReset}
-                                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded text-sm"
-                              >
-                                Reset
-                              </button>
-                            </div>
+                            <CodeEditor/> 
                           </div>
                         </div>
                         <div className="flex justify-between items-center mt-6">
@@ -806,7 +762,7 @@ const ExamPortal = () => {
                     </button>
                     </div>
                         </div>
-                    )}             
+                    )}
         </div>
       </div>
     </div>

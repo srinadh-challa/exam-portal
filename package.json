@@ -9,8 +9,17 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@codemirror/basic-setup": "^0.20.0",
+    "@codemirror/lang-cpp": "^6.0.2",
+    "@codemirror/lang-java": "^6.0.1",
+    "@codemirror/lang-javascript": "^6.2.2",
+    "@codemirror/lang-python": "^6.1.7",
+    "@codemirror/theme-one-dark": "^6.1.2",
     "@heroicons/react": "^2.2.0",
+    "@uiw/codemirror-themes": "^4.23.7",
+    "@uiw/react-codemirror": "^4.23.7",
     "axios": "^1.7.9",
+    "codemirror": "^6.0.1",
     "lucide-react": "^0.469.0",
     "next": "15.1.2",
     "react": "^19.0.0",
