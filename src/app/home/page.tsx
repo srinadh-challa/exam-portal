@@ -5,7 +5,7 @@ import { Timer, Home, BookOpen, Brain, Code, Mail, RedoDot, ArrowLeft, ArrowRigh
 type AnswersType = {
   [key: string]: string;
 };
-import CodeEditor from "../EditorComponent/Editor";
+// import CodeEditor from "../EditorComponent/Editor";
 
 interface Question {
   id: number;
@@ -738,7 +738,7 @@ const ExamPortal = () => {
                           <div
                             className={`bg-gray-900 text-gray-300 rounded-md overflow-hidden`}
                           >
-                            <CodeEditor/> 
+                            {/* <CodeEditor/>  */}
                           </div>
                         </div>
                         <div className="flex justify-between items-center mt-6">
