@@ -45,14 +45,6 @@ const ExamPortal = () => {
 
   const userEmail = "sriram.lnrs@gmail.com";
   
-  const [isMinimized, setIsMinimized] = useState<boolean>(false); // State to track minimized state
-  
-    // Function to handle minimize toggle
-    const handleMinimize = (section: string) => {
-      console.log(`Toggling minimize for: ${section}`);
-      setIsMinimized((prev) => !prev); // Toggle the minimized state
-    };
-  
   // const togglePreviewSize = () => {
   //   setIsPreviewExpanded(!isPreviewExpanded);
   // };
@@ -180,7 +172,7 @@ const ExamPortal = () => {
     useEffect(() => {
       const fetchExamSections = async () => {
         try {
-          const response = await fetch("http://localhost:5000/api/exam-sections");
+          const response = await fetch("https://exam-portal-backend-334o.onrender.com/api/exam-sections");
           if (!response.ok) {
             throw new Error("Failed to fetch exam sections");
           }
@@ -444,11 +436,6 @@ const ExamPortal = () => {
                     <span className="text-red-600 dark:text-red-400 text-sm font-medium">Recording</span>
                   </div>
                 )}
-                <div className="z-50 p-2 hover:bg-blue-700 rounded">
-                  <button className="text-4xl font-bold text-red-700 text-white"
-                    onClick={() => handleMinimize("home")}>  {isMinimized ? "+" : "-"}
-                  </button>
-                </div>
               </div>
             )}
 
@@ -485,11 +472,9 @@ const ExamPortal = () => {
       {/* Webcam Preview */}
       {examStarted && (
         <div
-        className={`duration-500 fixed ${
-          isMinimized ? "top-20 right-4" : "top-20 right-4 z-50"
-        }`}
+        className={`duration-500 fixed bottom-20 left-4`}
       >
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-2" style={{ width: '180px' }}>
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-2" style={{ width: '150px' }}>
             <div className="relative">
               <video
                 ref={videoRef}
@@ -526,7 +511,7 @@ const ExamPortal = () => {
       {/* Three-column Layout */}
       <div className="flex max-w-7xl mx-auto px-4 py-6">
         {/* Column 1: Sections Menu */}
-        <div className="w-48 flex-shrink-0">
+        <div className="w-30 flex-shrink-0">
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg sticky top-24 p-4">
             <div className="flex flex-col space-y-2">
               <button
@@ -571,15 +556,15 @@ const ExamPortal = () => {
         {examStarted && currentSection !== "home" && (
           <div className="w-15 flex-shrink-0 ml-4">
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg sticky top-24 p-2">
-              <h3 className="font-small text-gray-600 dark:text-gray-300 mb-3">Questions</h3>
+              <h3 className="font-small text-gray-600 dark:text-gray-300 mb-3 text-center">Q</h3>
               <div className="flex flex-col space-y-2">
                 {examSectionsNew[currentSection].questions.map((_, idx) => (
                   <button
                     key={idx}
                     onClick={() => handleQuestionChange(idx)}
-                    className={`p-2 rounded-lg text-sm font-medium w-16 transition-all
+                    className={`p-2 rounded-lg text-sm font-medium w-10 transition-all
                       ${currentQuestionIndex === idx
-                        ? 'bg-blue-600 dark:bg-blue-500 text-white w-16'
+                        ? 'bg-blue-600 dark:bg-blue-500 text-white'
                         : answers[`${currentSection}-${idx + 1}`]
                           ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400'
                           : 'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600'
