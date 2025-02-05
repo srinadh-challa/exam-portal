@@ -19,3 +19,6 @@ body {
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
 }
+.Toastify__progress-bar {
+  background-color: #ffc312 !important; /* Bright yellow progress bar */
+}

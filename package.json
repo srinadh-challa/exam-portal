@@ -20,12 +20,15 @@
     "@uiw/react-codemirror": "^4.23.7",
     "axios": "^1.7.9",
     "codemirror": "^6.0.1",
+    "framer-motion": "^12.0.8",
     "lucide-react": "^0.469.0",
     "next": "15.1.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-draggable": "^4.4.6",
-    "react-router-dom": "^7.1.0"
+    "react-router-dom": "^7.1.0",
+    "react-toastify": "^11.0.3",
+    "react-use-gesture": "^9.1.3"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
