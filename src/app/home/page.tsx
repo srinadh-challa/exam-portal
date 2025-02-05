@@ -22,12 +22,13 @@ import { oneDark } from "@codemirror/theme-one-dark";
 import Draggable from "../draggable";
 import { ToastContainer } from "react-toastify";
 import { showErrorToast } from "../ToastProvider";
-interface CodeEditorProps {
+export interface CodeEditorProps {
+  code: string;
+  onChange: (newCode: string) => void;
+  language?: string;
   initialCode?: string;
-  onChange?: (value: string) => void;
-  // language?: "javascript" | "python" | "java" | "c" | "cpp";
-  // setLanguage?: (language: "javascript" | "python" | "java" | "c" | "cpp") => void;
 }
+
 declare global {
   interface Window {
     loadPyodide: (config: { indexURL: string }) => Promise<PyodideInterface>;
