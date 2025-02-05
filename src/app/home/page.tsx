@@ -12,8 +12,7 @@ import {
   ArrowLeft,
   ArrowRight,
   Camera,
-  VideoOff,
-  AlertCircle,
+  VideoOff
 } from "lucide-react";
 
 import CodeMirror from "@uiw/react-codemirror";
@@ -29,7 +28,17 @@ interface CodeEditorProps {
   // language?: "javascript" | "python" | "java" | "c" | "cpp";
   // setLanguage?: (language: "javascript" | "python" | "java" | "c" | "cpp") => void;
 }
-
+declare global {
+  interface Window {
+    loadPyodide: (config: { indexURL: string }) => Promise<any>;
+  }
+}
+interface PyodideInterface {
+  runPython: (code: string) => any;
+  runPythonAsync: (code: string) => Promise<any>;
+  // Add more methods if needed
+}
+type Language = "javascript" | "python";
 type AnswersType = {
   [key: string]: string;
 };
@@ -76,12 +85,10 @@ const ExamPortal: React.FC<CodeEditorProps> = ({
 
   // codeEditor
   // const CodeEditor: React.FC<CodeEditorProps> = ({ initialCode = "", onChange, language = "javascript", setLanguage })
-  const [language, setLanguage] = useState<
-    "javascript" | "python" | "java" | "c" | "cpp"
-  >("javascript");
+  const [language, setLanguage] = useState<Language>("javascript");
   const [code, setCode] = useState<string>(initialCode);
   const [output, setOutput] = useState<string>("");
-  const [pyodide, setPyodide] = useState<any>(null);
+  const [pyodide, setPyodide] = useState<PyodideInterface | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [inputValue, setInputValue] = useState<string>("");
 
@@ -101,7 +108,7 @@ const ExamPortal: React.FC<CodeEditorProps> = ({
 
       const loadPyodide = async () => {
         try {
-          const pyodideInstance = await (window as any).loadPyodide({
+          const pyodideInstance = await window.loadPyodide({
             indexURL: "https://cdn.jsdelivr.net/pyodide/v0.22.1/full/",
           });
           setPyodide(pyodideInstance);
@@ -1139,7 +1146,7 @@ try {
                     <div className="mb-4 flex items-center space-x-4">
                       <select
                         value={language}
-                        onChange={(e) => setLanguage(e.target.value as any)}
+                        onChange={(e) => setLanguage(e.target.value as Language)}
                         className="p-2 border border-gray-500 rounded-md bg-gray-700 text-white"
                       >
                         <option value="javascript">JavaScript</option>
