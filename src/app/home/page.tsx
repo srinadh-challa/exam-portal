@@ -30,14 +30,18 @@ interface CodeEditorProps {
 }
 declare global {
   interface Window {
-    loadPyodide: (config: { indexURL: string }) => Promise<any>;
+    loadPyodide: (config: { indexURL: string }) => Promise<PyodideInterface>;
   }
 }
+
+// Define the Pyodide interface properly
 interface PyodideInterface {
-  runPython: (code: string) => any;
-  runPythonAsync: (code: string) => Promise<any>;
-  // Add more methods if needed
+  runPython: (code: string) => string;
+  runPythonAsync: (code: string) => Promise<string>;
+  loadPackage: (packageName: string) => Promise<void>;
+  // Add more Pyodide methods if needed
 }
+
 type Language = "javascript" | "python";
 type AnswersType = {
   [key: string]: string;
