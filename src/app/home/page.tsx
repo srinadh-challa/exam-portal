@@ -584,7 +584,7 @@ try {
 
   const handlePreviousQuestion = () => {
     const currentSectionIndex = SECTION_ORDER.indexOf(currentSection);
-    const currentQuestions = examSectionsNew[currentSection]?.questions || [];
+    // const currentQuestions = examSectionsNew[currentSection]?.questions || [];
     
     // Check if previous questions in current section
     if (currentQuestionIndex > 0) {
