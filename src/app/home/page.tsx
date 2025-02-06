@@ -14,7 +14,6 @@ import {
   Camera,
   VideoOff,
   GripHorizontal,
-  Laptop,
 } from "lucide-react";
 
 import CodeMirror from "@uiw/react-codemirror";
