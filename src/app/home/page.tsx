@@ -22,6 +22,7 @@ import { oneDark } from "@codemirror/theme-one-dark";
 import Draggable from "../draggable";
 import { ToastContainer } from "react-toastify";
 import { showErrorToast } from "../ToastProvider";
+
 export interface CodeEditorProps {
   code: string;
   onChange: (newCode: string) => void;
@@ -64,10 +65,11 @@ interface ExamSections {
   [key: string]: Section; // Allow dynamic keys like "mcqs", "aptitude", etc.
 }
 
-const ExamPortal: React.FC<CodeEditorProps> = ({
+const ExamPortal = ({
   initialCode = "",
   onChange,
-}) => {
+}: CodeEditorProps) => {
+
   const [timeLeft, setTimeLeft] = useState<number>(60 * 60);
   const [examStarted, setExamStarted] = useState<boolean>(false);
   const [currentSection, setCurrentSection] = useState<string>("home");
@@ -172,6 +174,22 @@ const ExamPortal: React.FC<CodeEditorProps> = ({
   //     setOutput(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
   //   }
   // };
+// Add this useEffect hook with the existing hooks
+useEffect(() => {
+  // Reset code when changing coding questions
+  if (currentSection === "coding") {
+    setCode("");
+    setOutput("");
+  }
+}, [currentQuestionIndex, currentSection]);
+
+// Also reset code when switching to coding section
+useEffect(() => {
+  if (currentSection === "coding") {
+    setCode("");
+    setOutput("");
+  }
+}, [currentSection]);
 
   // Modify useEffect for loading test cases
   useEffect(() => {
@@ -1157,6 +1175,12 @@ try {
                         <option value="javascript">JavaScript</option>
                         <option value="python">Python</option>
                       </select>
+                      <button
+    onClick={() => setCode('')}
+    className="p-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors"
+  >
+    Reset
+  </button>
 
                       <button
                         onClick={handleRun}
