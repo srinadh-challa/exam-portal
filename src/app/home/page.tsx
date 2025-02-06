@@ -75,7 +75,7 @@ const ExamPortal = () => {
   const [isContainerVisible, setIsContainerVisible] = useState(false);
   const [isSection4Visible, setIsSection4Visible] = useState(true);
   const [examSectionsNew, setExamSections] = useState<ExamSections>({});
-  const [isMobile, setIsMobile] = useState(false);
+  
 
   // const [selectedTitle, setSelectedTitle] = useState("Multiple Choice Questions"); // Default selected title
   const [useCustomInput, setUseCustomInput] = useState(false);
@@ -91,19 +91,7 @@ const ExamPortal = () => {
   const [inputValue, setInputValue] = useState<string>("");
   const SECTION_ORDER = ["mcqs", "aptitude", "ai", "coding"];
 
-  // Add mobile detection
-  useEffect(() => {
-    const checkMobile = () => {
-      const isMobileDevice = window.matchMedia("(max-width: 768px)").matches;
-      setIsMobile(isMobileDevice);
-    };
-    
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
-
+  
   useEffect(() => {
     if (language === "python") {
       const loadPyodideScript = () => {
@@ -695,24 +683,7 @@ try {
 
 
   // Add mobile restriction
-  if (isMobile) {
-    return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
-        <div className="text-center text-white max-w-md">
-          <h1 className="text-2xl font-bold mb-4">⚠️ Mobile Access Restricted</h1>
-          <p className="text-gray-300 mb-6">
-            This exam portal is not available on mobile devices. Please use a tablet or desktop computer to access the assessment.
-          </p>
-          <div className="flex items-center justify-center space-x-2 text-gray-400">
-            <Laptop className="w-6 h-6" />
-            <span>Switch to a larger device to continue</span>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
       <ToastContainer />

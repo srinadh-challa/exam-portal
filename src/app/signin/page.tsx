@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { User, Lock, ArrowRight, Loader2 } from 'lucide-react';
+import { User, Lock, ArrowRight, Loader2, Laptop } from 'lucide-react';
 
 const VALID_CREDENTIALS = {
   email: 'sriram.lnrs@gmail.com',
@@ -18,6 +18,7 @@ const SignInPage = () => {
   });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -43,6 +44,33 @@ const SignInPage = () => {
     }
   };
 
+  // Add mobile detection
+    useEffect(() => {
+      const checkMobile = () => {
+        const isMobileDevice = window.matchMedia("(max-width: 768px)").matches;
+        setIsMobile(isMobileDevice);
+      };
+      
+      checkMobile();
+      window.addEventListener('resize', checkMobile);
+      return () => window.removeEventListener('resize', checkMobile);
+    }, []);
+    if (isMobile) {
+      return (
+        <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
+          <div className="text-center text-white max-w-md">
+            <h1 className="text-2xl font-bold mb-4">⚠️ Mobile Access Restricted</h1>
+            <p className="text-gray-300 mb-6">
+              This exam portal is not available on mobile devices. Please use a tablet or desktop computer to access the assessment.
+            </p>
+            <div className="flex items-center justify-center space-x-2 text-gray-400">
+              <Laptop className="w-6 h-6" />
+              <span>Switch to a larger device to continue</span>
+            </div>
+          </div>
+        </div>
+      );
+    }
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-600 via-purple-600 to-pink-500 p-4">
       <div className="relative w-full max-w-md">
