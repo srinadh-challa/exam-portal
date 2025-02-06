@@ -12,7 +12,9 @@ import {
   ArrowLeft,
   ArrowRight,
   Camera,
-  VideoOff
+  VideoOff,
+  GripHorizontal,
+  Laptop,
 } from "lucide-react";
 
 import CodeMirror from "@uiw/react-codemirror";
@@ -60,7 +62,6 @@ interface ExamSections {
 }
 
 const ExamPortal = () => {
-
   const [timeLeft, setTimeLeft] = useState<number>(60 * 60);
   const [examStarted, setExamStarted] = useState<boolean>(false);
   const [currentSection, setCurrentSection] = useState<string>("home");
@@ -74,6 +75,7 @@ const ExamPortal = () => {
   const [isContainerVisible, setIsContainerVisible] = useState(false);
   const [isSection4Visible, setIsSection4Visible] = useState(true);
   const [examSectionsNew, setExamSections] = useState<ExamSections>({});
+  const [isMobile, setIsMobile] = useState(false);
 
   const [selectedTitle, setSelectedTitle] = useState(
     "Multiple Choice Questions"
@@ -89,6 +91,19 @@ const ExamPortal = () => {
   const [pyodide, setPyodide] = useState<PyodideInterface | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [inputValue, setInputValue] = useState<string>("");
+
+  // Add mobile detection
+  useEffect(() => {
+    const checkMobile = () => {
+      const isMobileDevice = window.matchMedia("(max-width: 768px)").matches;
+      setIsMobile(isMobileDevice);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
 
   useEffect(() => {
     if (language === "python") {
@@ -165,22 +180,22 @@ const ExamPortal = () => {
   //     setOutput(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
   //   }
   // };
-// Add this useEffect hook with the existing hooks
-useEffect(() => {
-  // Reset code when changing coding questions
-  if (currentSection === "coding") {
-    setCode("");
-    setOutput("");
-  }
-}, [currentQuestionIndex, currentSection]);
+  // Add this useEffect hook with the existing hooks
+  useEffect(() => {
+    // Reset code when changing coding questions
+    if (currentSection === "coding") {
+      setCode("");
+      setOutput("");
+    }
+  }, [currentQuestionIndex, currentSection]);
 
-// Also reset code when switching to coding section
-useEffect(() => {
-  if (currentSection === "coding") {
-    setCode("");
-    setOutput("");
-  }
-}, [currentSection]);
+  // Also reset code when switching to coding section
+  useEffect(() => {
+    if (currentSection === "coding") {
+      setCode("");
+      setOutput("");
+    }
+  }, [currentSection]);
 
   // Modify useEffect for loading test cases
   useEffect(() => {
@@ -202,9 +217,9 @@ useEffect(() => {
     try {
       const currentQuestion =
         examSectionsNew[currentSection].questions[currentQuestionIndex];
-        
-    // Get the correct input source
-    const inputToUse = useCustomInput ? customInput : inputValue;
+
+      // Get the correct input source
+      const inputToUse = useCustomInput ? customInput : inputValue;
       const testCases = useCustomInput
         ? customInput.split("\n").filter((tc) => tc.trim())
         : inputValue.split("\n").filter((tc) => tc.trim());
@@ -245,7 +260,7 @@ try {
           setOutput("Pyodide is still loading...");
           return;
         }
-  
+
         try {
           await pyodide.runPythonAsync(`
             import sys
@@ -253,12 +268,12 @@ try {
             sys.stdout = StringIO()
             sys.stderr = sys.stdout
           `);
-  
+
           // Use the correct input source
           await pyodide.runPythonAsync(`
             sys.stdin = StringIO("${inputToUse.replace(/\n/g, "\\n")}")
           `);
-  
+
           // Rest of Python execution logic
           await pyodide.runPythonAsync(code);
           const result = await pyodide.runPythonAsync("sys.stdout.getvalue()");
@@ -268,7 +283,9 @@ try {
         }
       }
     } catch (error) {
-      setOutput(`Error: ${error instanceof Error ? error.message : "Unknown error"}`);
+      setOutput(
+        `Error: ${error instanceof Error ? error.message : "Unknown error"}`
+      );
     }
   };
 
@@ -302,7 +319,6 @@ try {
     };
   }, [examStarted]);
 
-  
   const initializeCamera = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -676,9 +692,29 @@ try {
   //   return renderQuestionContent();
   // };
 
+
+  // Add mobile restriction
+  if (isMobile) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
+        <div className="text-center text-white max-w-md">
+          <h1 className="text-2xl font-bold mb-4">⚠️ Mobile Access Restricted</h1>
+          <p className="text-gray-300 mb-6">
+            This exam portal is not available on mobile devices. Please use a tablet or desktop computer to access the assessment.
+          </p>
+          <div className="flex items-center justify-center space-x-2 text-gray-400">
+            <Laptop className="w-6 h-6" />
+            <span>Switch to a larger device to continue</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
-      <ToastContainer/>
+      <ToastContainer />
       {/* Header */}
       <header className="bg-white dark:bg-gray-800 shadow-md backdrop-blur-sm bg-opacity-90 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between">
@@ -748,10 +784,7 @@ try {
       </header>
 
       {/* Camera Error Alert */}
-      {cameraError && (
-        <div className="mt-0">
-          </div>
-      )}
+      {cameraError && <div className="mt-0"></div>}
 
       {/* Webcam Preview */}
       {examStarted && (
@@ -761,7 +794,9 @@ try {
               className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-2"
               style={{ width: "150px" }}
             >
-              <h1 className="text-center pt-0 text-xl font-semibold">....</h1>
+              <div className="flex justify-center items-center w-full h-full">
+                <GripHorizontal className="text-gray-500" />
+              </div>
               <div className="relative">
                 <video
                   ref={videoRef}
@@ -799,9 +834,9 @@ try {
       )}
 
       {/* Three-column Layout */}
-      <div className="flex max-w-7xl mx-auto px-4 py-2">
+      <div className="flex max-w-7xl mx-auto px-4 py-2 gap-4">
         {/* Column 1: Sections Menu */}
-        <div className="w-30 flex-shrink-0">
+        <div className="w-[200px] flex-shrink-0 lg:w-[240px]">
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg sticky top-24 p-4">
             <div className="flex flex-col space-y-1">
               <button
@@ -853,7 +888,7 @@ try {
 
         {/* Column 2: Question Numbers */}
         {examStarted && currentSection !== "home" && (
-          <div className="w-15 flex-shrink-0 ml-4">
+          <div className="w-15 flex-shrink-0 hidden md:block">
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg sticky top-24 p-2">
               <h3 className="font-small text-gray-600 dark:text-gray-300 mb-3 text-center">
                 Q
@@ -881,7 +916,7 @@ try {
         )}
 
         {/* Column 3: Main Content */}
-        <div className="flex-1 ml-4">
+        <div className="flex-1 ml-0 lg:ml-4 min-w-0">
           {isSection4Visible && (
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
               {currentSection === "home" ? (
@@ -1077,8 +1112,8 @@ try {
           )}
           {isContainerVisible && (
             <div>
-              <div className={`flex bg-gray-800`}>
-                <div className="w-1/2 bg-gray-800 shadow-lg rounded p-6 overflow-auto">
+              <div className={`flex flex-col xl:flex-row gap-4 bg-gray-800`}>
+                <div className="w-full xl:w-1/2 bg-gray-800 shadow-lg rounded p-4 lg:p-6 overflow-auto">
                   <div className="flex">
                     <div className="bg-white dark:bg-gray-800 rounded-lg">
                       <h3 className="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-100">
@@ -1092,86 +1127,88 @@ try {
                         }
                       </p>
                       <div className="space-y-3">
-                      <label className="flex items-center space-x-2">
-                        <input
-                          type="checkbox"
-                          checked={useCustomInput}
-                          onChange={(e) => {
-                            setUseCustomInput(e.target.checked);
-                            if (!e.target.checked) {
-                              setCustomInput("");
-                            }
-                          }}
-                          className="form-checkbox h-4 w-4 text-blue-500"
-                        />
-                        <span className="text-white">Use Custom Input</span>
-                      </label>
+                        <label className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            checked={useCustomInput}
+                            onChange={(e) => {
+                              setUseCustomInput(e.target.checked);
+                              if (!e.target.checked) {
+                                setCustomInput("");
+                              }
+                            }}
+                            className="form-checkbox h-4 w-4 text-blue-500"
+                          />
+                          <span className="text-white">Use Custom Input</span>
+                        </label>
                         {useCustomInput ? (
-                      <div className="mt-2">
-                        <h3 className="text-lg font-semibold text-white mb-2">
-                          Custom Input:
-                        </h3>
-                        <textarea
-                          className="bg-gray-700 p-2 w-full rounded-md border border-gray-500 text-white"
-                          value={customInput}
-                          onChange={(e) => setCustomInput(e.target.value)}
-                          placeholder="Enter custom input..."
-                        />
-                      </div>
-                    ) : (
-                      <div className="mt-4">
-                        <h3 className="text-lg font-semibold text-white mb-2">
-                          Sample Test Cases:
-                        </h3>
-                        <div className="bg-gray-700 p-3 rounded-md mb-4">
-                          {examSectionsNew[currentSection].questions[
-                            currentQuestionIndex
-                          ].options
-                            .filter((_, idx) => idx % 2 === 0)
-                            .map((inputCase, idx) => (
-                              <div
-                                key={idx}
-                                className="text-gray-300 text-sm font-mono mb-2"
-                              >
-                                <div className="text-blue-300">
-                                  Input {idx + 1}: {inputCase}
-                                </div>
-                                <div className="text-green-300 ml-4">
-                                  Expected:{" "}
-                                  {
-                                    examSectionsNew[currentSection].questions[
-                                      currentQuestionIndex
-                                    ].options[idx * 2 + 1]
-                                  }
-                                </div>
-                              </div>
-                            ))}
-                        </div>
-                      </div>
-                    )}
+                          <div className="mt-2">
+                            <h3 className="text-lg font-semibold text-white mb-2">
+                              Custom Input:
+                            </h3>
+                            <textarea
+                              className="bg-gray-700 p-2 w-full rounded-md border border-gray-500 text-white"
+                              value={customInput}
+                              onChange={(e) => setCustomInput(e.target.value)}
+                              placeholder="Enter custom input..."
+                            />
+                          </div>
+                        ) : (
+                          <div className="mt-4">
+                            <h3 className="text-lg font-semibold text-white mb-2">
+                              Sample Test Cases:
+                            </h3>
+                            <div className="bg-gray-700 p-3 rounded-md mb-4">
+                              {examSectionsNew[currentSection].questions[
+                                currentQuestionIndex
+                              ].options
+                                .filter((_, idx) => idx % 2 === 0)
+                                .map((inputCase, idx) => (
+                                  <div
+                                    key={idx}
+                                    className="text-gray-300 text-sm font-mono mb-2"
+                                  >
+                                    <div className="text-blue-300">
+                                      Input {idx + 1}: {inputCase}
+                                    </div>
+                                    <div className="text-green-300 ml-4">
+                                      Expected:{" "}
+                                      {
+                                        examSectionsNew[currentSection]
+                                          .questions[currentQuestionIndex]
+                                          .options[idx * 2 + 1]
+                                      }
+                                    </div>
+                                  </div>
+                                ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
                 </div>
                 <div
-                  className={`text-gray-300 rounded-md overflow-hidden w-1/2`}
+                  className={`w-full xl:w-1/2 rounded-md overflow-hidden`}
                 >
-                  <div className="p-4 max-w-4xl mx-auto bg-gray-800">
+                  <div className="p-4 bg-gray-800 h-full">
                     <div className="mb-4 flex items-center space-x-4">
                       <select
                         value={language}
-                        onChange={(e) => setLanguage(e.target.value as Language)}
+                        onChange={(e) =>
+                          setLanguage(e.target.value as Language)
+                        }
                         className="p-2 border border-gray-500 rounded-md bg-gray-700 text-white"
                       >
                         <option value="javascript">JavaScript</option>
                         <option value="python">Python</option>
                       </select>
                       <button
-    onClick={() => setCode('')}
-    className="p-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors"
-  >
-    Reset
-  </button>
+                        onClick={() => setCode("")}
+                        className="p-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors"
+                      >
+                        Reset
+                      </button>
 
                       <button
                         onClick={handleRun}
@@ -1183,7 +1220,7 @@ try {
                     <div className="border-2 w-full border-gray-500 rounded-md shadow-sm bg-gray-900 text-white">
                       <CodeMirror
                         value={code}
-                        height="200px"
+                        height="300px"
                         extensions={[languageExtension, oneDark]}
                         onChange={(value) => handleChange(value)}
                         className="bg-gray-900 h-1/2"
@@ -1194,23 +1231,23 @@ try {
 
                     <div className="mt-4">
                       <div>
-                      <h3 className="text-lg font-semibold text-white mb-2">
-                        Test Inputs:
-                      </h3>
-                      <div className="bg-gray-700 p-3 rounded-md mb-4">
-                        {inputValue.split("\n").map((tc, i) => (
-                          <div
-                            key={i}
-                            className="text-gray-300 text-sm font-mono"
-                          >
-                            {tc.trim() || (
-                              <span className="text-gray-500">
-                                (empty line)
-                              </span>
-                            )}
-                          </div>
-                        ))}
-                      </div>
+                        <h3 className="text-lg font-semibold text-white mb-2">
+                          Test Inputs:
+                        </h3>
+                        <div className="bg-gray-700 p-3 rounded-md mb-4">
+                          {inputValue.split("\n").map((tc, i) => (
+                            <div
+                              key={i}
+                              className="text-gray-300 text-sm font-mono"
+                            >
+                              {tc.trim() || (
+                                <span className="text-gray-500">
+                                  (empty line)
+                                </span>
+                              )}
+                            </div>
+                          ))}
+                        </div>
                       </div>
 
                       <h3 className="text-lg font-semibold text-white mb-2">
