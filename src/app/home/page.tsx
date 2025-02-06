@@ -77,9 +77,7 @@ const ExamPortal = () => {
   const [examSectionsNew, setExamSections] = useState<ExamSections>({});
   const [isMobile, setIsMobile] = useState(false);
 
-  const [selectedTitle, setSelectedTitle] = useState(
-    "Multiple Choice Questions"
-  ); // Default selected title
+  // const [selectedTitle, setSelectedTitle] = useState("Multiple Choice Questions"); // Default selected title
   const [useCustomInput, setUseCustomInput] = useState(false);
   const [customInput, setCustomInput] = useState("");
 
@@ -91,6 +89,7 @@ const ExamPortal = () => {
   const [pyodide, setPyodide] = useState<PyodideInterface | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [inputValue, setInputValue] = useState<string>("");
+  const SECTION_ORDER = ["mcqs", "aptitude", "ai", "coding"];
 
   // Add mobile detection
   useEffect(() => {
@@ -537,20 +536,23 @@ try {
     };
   }, [examStarted]);
 
-  const handleSectionChange = (section: keyof typeof examSectionsNew) => {
-    if (!examStarted && section !== "home") return;
-    console.log("Changing section to:", section);
+  const handleSectionChange = (section: string) => {
+    const sectionIndex = SECTION_ORDER.indexOf(section);
+    
+    // Validate section order
+    if (sectionIndex === -1) return;
+    
+    setCurrentSection(section);
+    setCurrentQuestionIndex(0);
+    
+    // Handle coding section visibility
     if (section === "coding") {
       setIsContainerVisible(true);
       setIsSection4Visible(false);
-      setSelectedTitle("Coding Challenge");
-      console.log(selectedTitle);
     } else {
       setIsContainerVisible(false);
       setIsSection4Visible(true);
     }
-    setCurrentSection(section as string);
-    setCurrentQuestionIndex(0);
   };
 
   const handleQuestionChange = (index: number) => {
@@ -558,49 +560,48 @@ try {
   };
 
   const handleNextQuestion = () => {
-    if (
-      currentQuestionIndex <
-      examSectionsNew[currentSection].questions.length - 1
-    ) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
-      if (currentSection === "coding") {
-        setIsContainerVisible(true);
-        setIsSection4Visible(false);
-      } else {
-        setIsContainerVisible(false);
-        setIsSection4Visible(true);
+    const currentSectionIndex = SECTION_ORDER.indexOf(currentSection);
+    const currentQuestions = examSectionsNew[currentSection]?.questions || [];
+    
+    // Check if there are more questions in current section
+    if (currentQuestionIndex < currentQuestions.length - 1) {
+      setCurrentQuestionIndex(prev => prev + 1);
+    } else {
+      // Move to next section if available
+      if (currentSectionIndex < SECTION_ORDER.length - 1) {
+        const nextSection = SECTION_ORDER[currentSectionIndex + 1];
+        setCurrentSection(nextSection);
+        setCurrentQuestionIndex(0);
+        
+        // Update visibility states for coding section
+        if (nextSection === "coding") {
+          setIsContainerVisible(true);
+          setIsSection4Visible(false);
+        }
       }
-    } else if (
-      Object.keys(examSectionsNew).indexOf(currentSection) <
-      Object.keys(examSectionsNew).length - 1
-    ) {
-      const sections = Object.keys(examSectionsNew);
-      const nextSection = sections[sections.indexOf(currentSection) + 1];
-      setCurrentSection(nextSection);
-      setCurrentQuestionIndex(0);
     }
   };
 
   const handlePreviousQuestion = () => {
+    const currentSectionIndex = SECTION_ORDER.indexOf(currentSection);
+    const currentQuestions = examSectionsNew[currentSection]?.questions || [];
+    
+    // Check if previous questions in current section
     if (currentQuestionIndex > 0) {
-      console.log(currentSection);
-      setCurrentQuestionIndex(currentQuestionIndex - 1);
-    } else if (Object.keys(examSectionsNew).indexOf(currentSection) > 0) {
-      const sections = Object.keys(examSectionsNew);
-      const prevSection = sections[sections.indexOf(currentSection) - 1];
-      setCurrentSection(prevSection);
-      setCurrentQuestionIndex(
-        examSectionsNew[prevSection].questions.length - 1
-      );
-    }
-    if (currentSection === "coding") {
-      setIsContainerVisible(true);
-      setIsSection4Visible(false);
-      setSelectedTitle("Coding Challenge");
-      console.log(selectedTitle);
+      setCurrentQuestionIndex(prev => prev - 1);
     } else {
-      setIsContainerVisible(false);
-      setIsSection4Visible(true);
+      // Move to previous section if available
+      if (currentSectionIndex > 0) {
+        const prevSection = SECTION_ORDER[currentSectionIndex - 1];
+        setCurrentSection(prevSection);
+        setCurrentQuestionIndex(examSectionsNew[prevSection].questions.length - 1);
+        
+        // Update visibility states when leaving coding section
+        if (currentSection === "coding") {
+          setIsContainerVisible(false);
+          setIsSection4Visible(true);
+        }
+      }
     }
   };
 
@@ -836,7 +837,7 @@ try {
       {/* Three-column Layout */}
       <div className="flex max-w-7xl mx-auto px-4 py-2 gap-4">
         {/* Column 1: Sections Menu */}
-        <div className="w-[200px] flex-shrink-0 lg:w-[240px]">
+        <div className="w-[100px] flex-shrink-0 lg:w-[150px]">
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg sticky top-24 p-4">
             <div className="flex flex-col space-y-1">
               <button
@@ -916,7 +917,7 @@ try {
         )}
 
         {/* Column 3: Main Content */}
-        <div className="flex-1 ml-0 lg:ml-4 min-w-0">
+        <div className="flex-1 ml-0 min-w-0">
           {isSection4Visible && (
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
               {currentSection === "home" ? (
@@ -1112,7 +1113,7 @@ try {
           )}
           {isContainerVisible && (
             <div>
-              <div className={`flex flex-col xl:flex-row gap-4 bg-gray-800`}>
+              <div className={`flex flex-col lg:flex-row xl:flex-row gap-4 bg-gray-800`}>
                 <div className="w-full xl:w-1/2 bg-gray-800 shadow-lg rounded p-4 lg:p-6 overflow-auto">
                   <div className="flex">
                     <div className="bg-white dark:bg-gray-800 rounded-lg">
@@ -1183,7 +1184,26 @@ try {
                                 ))}
                             </div>
                           </div>
-                        )}
+                        )}                        
+                      <div>
+                        <h3 className="text-lg font-semibold text-white mb-2">
+                          Test Inputs:
+                        </h3>
+                        <div className="bg-gray-700 p-3 rounded-md mb-4">
+                          {inputValue.split("\n").map((tc, i) => (
+                            <div
+                              key={i}
+                              className="text-gray-300 text-sm font-mono"
+                            >
+                              {tc.trim() || (
+                                <span className="text-gray-500">
+                                  (empty line)
+                                </span>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
                       </div>
                     </div>
                   </div>
@@ -1230,7 +1250,7 @@ try {
                     </div>
 
                     <div className="mt-4">
-                      <div>
+                      {/* <div>
                         <h3 className="text-lg font-semibold text-white mb-2">
                           Test Inputs:
                         </h3>
@@ -1248,7 +1268,7 @@ try {
                             </div>
                           ))}
                         </div>
-                      </div>
+                      </div> */}
 
                       <h3 className="text-lg font-semibold text-white mb-2">
                         Execution Results:
