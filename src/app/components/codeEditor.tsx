@@ -11,8 +11,8 @@ export interface CodeEditorProps {
 }
 
 export const CodeEditor: React.FC<CodeEditorProps> = ({
-  initialCode = "",
-  onChange,
+//   initialCode = "",
+//   onChange,
   // ... rest of props
 }) => {
   // Your editor implementation
