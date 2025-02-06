@@ -6,7 +6,7 @@ import "react-toastify/dist/ReactToastify.css";
 export function showErrorToast(message: string) {
   toast.error(message, {
     position: "top-center",
-    autoClose: 3000, // 3 seconds
+    autoClose: 5000, // 5 seconds
     hideProgressBar: false,
     closeOnClick: true,
     pauseOnHover: true,

@@ -22,13 +22,7 @@ import { oneDark } from "@codemirror/theme-one-dark";
 import Draggable from "../draggable";
 import { ToastContainer } from "react-toastify";
 import { showErrorToast } from "../ToastProvider";
-
-export interface CodeEditorProps {
-  code: string;
-  onChange: (newCode: string) => void;
-  language?: string;
-  initialCode?: string;
-}
+import { CodeEditorProps } from "../components/codeEditor";
 
 declare global {
   interface Window {
