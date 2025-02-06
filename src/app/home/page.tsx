@@ -22,7 +22,7 @@ import { oneDark } from "@codemirror/theme-one-dark";
 import Draggable from "../draggable";
 import { ToastContainer } from "react-toastify";
 import { showErrorToast } from "../ToastProvider";
-import { CodeEditorProps } from "../components/codeEditor";
+// import { CodeEditorProps } from "../components/codeEditor";
 
 declare global {
   interface Window {
@@ -59,10 +59,7 @@ interface ExamSections {
   [key: string]: Section; // Allow dynamic keys like "mcqs", "aptitude", etc.
 }
 
-const ExamPortal = ({
-  initialCode = "",
-  onChange,
-}: CodeEditorProps) => {
+const ExamPortal = () => {
 
   const [timeLeft, setTimeLeft] = useState<number>(60 * 60);
   const [examStarted, setExamStarted] = useState<boolean>(false);
@@ -87,7 +84,7 @@ const ExamPortal = ({
   // codeEditor
   // const CodeEditor: React.FC<CodeEditorProps> = ({ initialCode = "", onChange, language = "javascript", setLanguage })
   const [language, setLanguage] = useState<Language>("javascript");
-  const [code, setCode] = useState<string>(initialCode);
+  const [code, setCode] = useState<string>("");
   const [output, setOutput] = useState<string>("");
   const [pyodide, setPyodide] = useState<PyodideInterface | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -126,7 +123,7 @@ const ExamPortal = ({
 
   const handleChange = (value: string) => {
     setCode(value);
-    onChange?.(value);
+    // onChange?.(value);
   };
 
   // const handleRun = async () => {
