@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+
+import { useRouter } from 'next/navigation';
 import {
   Timer,
   Home,
@@ -23,7 +25,8 @@ import { oneDark } from "@codemirror/theme-one-dark";
 import Draggable from "../draggable";
 import { ToastContainer } from "react-toastify";
 import { showErrorToast } from "../ToastProvider";
-// import { CodeEditorProps } from "../components/codeEditor";
+import ProtectedRoute from "../components/ProtectedRoute";
+import LogoutButton from "../components/LogoutButton";
 
 declare global {
   interface Window {
@@ -89,6 +92,7 @@ const ExamPortal = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [inputValue, setInputValue] = useState<string>("");
   const SECTION_ORDER = ["mcqs", "aptitude", "ai", "coding"];
+  const router = useRouter();
 
   
   useEffect(() => {
@@ -127,45 +131,6 @@ const ExamPortal = () => {
     // onChange?.(value);
   };
 
-  // const handleRun = async () => {
-  //   try {
-  //     if (language === "javascript") {
-  //       // Split test cases into lines and process each one
-  //       const testCases = inputValue.split("\n");
-  //       const results = testCases.map(testCase => {
-  //         try {
-  //           return eval(`${code} \n ${testCase}`);
-  //         } catch (error) {
-  //           return `Error: ${error instanceof Error ? error.message : 'Unknown error'}`;
-  //         }
-  //       });
-  //       setOutput(results.join("\n"));
-  //     } else if (language === "python") {
-  //       if (loading) {
-  //         setOutput("Pyodide is still loading, please wait...");
-  //         return;
-  //       }
-
-  //       if (pyodide) {
-  //         // Process all test cases at once
-  //         const testCases = inputValue.split("\n");
-  //         const pythonCode = `
-  // results = []
-  // for test_case in ${JSON.stringify(testCases)}:
-  //     try:
-  //         results.append(str(eval(test_case)))  # Or your actual processing logic
-  //     except Exception as e:
-  //         results.append(f"Error: {str(e)}")
-  // "\\n".join(results)
-  //         `;
-  //         const result = await pyodide.runPython(pythonCode);
-  //         setOutput(result);
-  //       }
-  //     }
-  //   } catch (error: unknown) {
-  //     setOutput(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
-  //   }
-  // };
   // Add this useEffect hook with the existing hooks
   useEffect(() => {
     // Reset code when changing coding questions
@@ -417,36 +382,36 @@ try {
   // };
   // Fetch data from the backend
 
-  useEffect(() => {
-    const fetchExamSections = async () => {
-      try {
-        const response = await fetch(
-          "https://exam-portal-backend-334o.onrender.com/api/exam-sections"
-        );
-        if (!response.ok) {
-          throw new Error("Failed to fetch exam sections");
-        }
-        const data = await response.json();
-        // Validate data and filter unwanted keys
-        if (Array.isArray(data) && data[0]) {
-          const filteredSections = Object.entries(data[0])
-            .filter(([key]) => key !== "_id" && key !== "__v") // Filter out unwanted keys
-            .reduce((acc, [key, value]) => {
-              acc[key] = value as Section; // Explicitly assert or ensure value is of type Section
-              return acc;
-            }, {} as ExamSections);
+  const [isLoadingSections, setIsLoadingSections] = useState(true);
 
-          console.log("Fetched exam sections:", filteredSections);
-          setExamSections(filteredSections); // Save formatted object to state
-        } else {
-          console.warn("Unexpected data structure:", data);
-        }
-      } catch (error) {
-        console.error("Error fetching exam sections:", error);
+// Update your useEffect for fetching exam sections
+useEffect(() => {
+  const fetchExamSections = async () => {
+    try {
+      setIsLoadingSections(true); // Start loading
+      const response = await fetch(
+        "https://exam-portal-backend-334o.onrender.com/api/exam-sections"
+      );
+      if (!response.ok) throw new Error("Failed to fetch exam sections");
+      const data = await response.json();
+      
+      if (Array.isArray(data) && data[0]) {
+        const filteredSections = Object.entries(data[0])
+          .filter(([key]) => key !== "_id" && key !== "__v")
+          .reduce((acc, [key, value]) => {
+            acc[key] = value as Section;
+            return acc;
+          }, {} as ExamSections);
+        setExamSections(filteredSections);
       }
-    };
-    fetchExamSections();
-  }, [examStarted]);
+    } catch (error) {
+      console.error("Error fetching exam sections:", error);
+    } finally {
+      setIsLoadingSections(false); // Stop loading regardless of success/error
+    }
+  };
+  fetchExamSections();
+}, []);
 
   useEffect(() => {
     let timer: NodeJS.Timeout | undefined;
@@ -476,6 +441,17 @@ try {
   const handleAutoSubmit = () => {
     console.log("Auto-submitting exam...", answers);
     console.log("Submitting exam sections...", examSectionsNew);
+    // Stop camera recording
+    if (mediaRecorderRef.current) {
+      mediaRecorderRef.current.stop();
+      console.log("Recording stopped");
+    }
+    if (videoRef.current?.srcObject instanceof MediaStream) {
+      const tracks = videoRef.current.srcObject.getTracks();
+      tracks.forEach((track) => track.stop());
+    }
+    // Navigate to thank you page
+    router.push("/thankyoupage");
   };
 
   const handleStartExam = () => {
@@ -489,21 +465,21 @@ try {
     }
   };
 
-  // useEffect(() => {
-  //   if (!examStarted) return;
-  //   const handleVisibilityChange = () => {
-  //     if (document.visibilityState === "hidden") {
-  //       alert("Tab switching is not allowed during the exam. The exam will now be submitted.");
-  //       handleAutoSubmit(); // Automatically submit the exam or take appropriate action
-  //     }
-  //   };
+  useEffect(() => {
+    if (!examStarted) return;
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        alert("Tab switching is not allowed during the exam. The exam will now be submitted.");
+        handleAutoSubmit(); // Automatically submit the exam or take appropriate action
+      }
+    };
 
-  //   document.addEventListener("visibilitychange", handleVisibilityChange);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
-  //   return () => {
-  //     document.removeEventListener("visibilitychange", handleVisibilityChange);
-  //   };
-  // }, [examStarted]);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [examStarted]);
 
   useEffect(() => {
     if (!examStarted) return;
@@ -684,6 +660,7 @@ try {
   // Add mobile restriction
   
   return (
+    <ProtectedRoute>
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
       <ToastContainer />
       {/* Header */}
@@ -715,7 +692,7 @@ try {
                   <div className="flex items-center space-x-2 bg-red-50 dark:bg-red-900/30 px-3 py-2 rounded-full">
                     <div className="w-2 h-2 rounded-full bg-red-600 dark:bg-red-400 animate-pulse" />
                     <span className="text-red-600 dark:text-red-400 text-sm font-medium">
-                      Recording
+                      REC
                     </span>
                   </div>
                 )}
@@ -750,6 +727,7 @@ try {
                 {userEmail}
               </span>
             </div>
+            <LogoutButton />
           </div>
         </div>
       </header>
@@ -809,51 +787,56 @@ try {
         {/* Column 1: Sections Menu */}
         <div className="w-[100px] flex-shrink-0 lg:w-[150px]">
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg sticky top-24 p-4">
-            <div className="flex flex-col space-y-1">
-              <button
-                onClick={() => handleSectionChange("home")}
-                className={`flex items-center space-x-2 w-full p-2 rounded-lg transition-all
-                  ${
-                    currentSection === "home"
-                      ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400"
-                      : "hover:bg-gray-50 dark:hover:bg-gray-700"
-                  }`}
-              >
-                <Home className="w-5 h-5" />
-                <span className="font-medium">Home</span>
-              </button>
+          <div className="flex flex-col space-y-1">
+  <button
+    onClick={() => handleSectionChange("home")}
+    className={`flex items-center space-x-2 w-full p-2 rounded-lg transition-all
+      ${currentSection === "home" ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400" : "hover:bg-gray-50 dark:hover:bg-gray-700"}`}
+  >
+    <Home className="w-5 h-5" />
+    <span className="font-medium">Home</span>
+  </button>
 
-              {/* {Object.entries(examSections).map(([section, data], index) => ( */}
-              {Object.entries(examSectionsNew).map(([section], index) => (
-                <button
-                  key={section}
-                  onClick={() => handleSectionChange(section)}
-                  disabled={!examStarted}
-                  className={`flex items-center space-x-2 w-full p-2 rounded-lg transition-all
-                    ${
-                      currentSection === section
-                        ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400"
-                        : "hover:bg-gray-50 dark:hover:bg-gray-700"
-                    }
-                    ${!examStarted ? "opacity-50 cursor-not-allowed" : ""}`}
-                >
-                  {index === 0 && <BookOpen className="w-5 h-5" />}
-                  {index === 1 && <Brain className="w-5 h-5" />}
-                  {index === 2 && <RedoDot className="w-5 h-5" />}
-                  {index === 3 && <Code className="w-5 h-5" />}
-                  <span className="font-medium">Section {index + 1}</span>
-                </button>
-              ))}
-              {examStarted && (
-                <button
-                  onClick={handleAutoSubmit}
-                  className="mt-1 w-full bg-blue-600 dark:bg-blue-500 text-white p-3 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600
-                    transition-all hover:scale-105 active:scale-95 shadow-md"
-                >
-                  Submit
-                </button>
-              )}
-            </div>
+  {isLoadingSections ? (
+    // Skeleton loading for sections
+    Array.from({ length: 4 }).map((_, index) => (
+      <div
+        key={index}
+        className="flex items-center space-x-2 w-full p-2 rounded-lg animate-pulse"
+      >
+        <div className="h-5 w-5 bg-gray-300 dark:bg-gray-600 rounded-full" />
+        <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-16" />
+      </div>
+    ))
+  ) : (
+    // Actual section buttons
+    Object.entries(examSectionsNew).map(([section], index) => (
+      <button
+        key={section}
+        onClick={() => handleSectionChange(section)}
+        disabled={!examStarted}
+        className={`flex items-center space-x-2 w-full p-2 rounded-lg transition-all
+          ${currentSection === section ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400" : "hover:bg-gray-50 dark:hover:bg-gray-700"}
+          ${!examStarted ? "opacity-50 cursor-not-allowed" : ""}`}
+      >
+        {index === 0 && <BookOpen className="w-5 h-5" />}
+        {index === 1 && <Brain className="w-5 h-5" />}
+        {index === 2 && <RedoDot className="w-5 h-5" />}
+        {index === 3 && <Code className="w-5 h-5" />}
+        <span className="font-medium">Section {index + 1}</span>
+      </button>
+    ))
+  )}
+
+  {examStarted && (
+    <button
+      onClick={handleAutoSubmit}
+      className="mt-1 w-full bg-blue-600 dark:bg-blue-500 text-white p-3 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-all hover:scale-105 active:scale-95 shadow-md"
+    >
+      Submit
+    </button>
+  )}
+</div>
           </div>
         </div>
 
@@ -1298,6 +1281,7 @@ try {
         </div>
       </div>
     </div>
+    </ProtectedRoute>
   );
 };
 

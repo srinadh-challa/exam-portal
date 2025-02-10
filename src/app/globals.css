@@ -22,3 +22,11 @@ body {
 .Toastify__progress-bar {
   background-color: #ffc312 !important; /* Bright yellow progress bar */
 }
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.animate-pulse {
+  animation: pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}

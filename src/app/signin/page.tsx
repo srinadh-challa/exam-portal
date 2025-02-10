@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { User, Lock, ArrowRight, Loader2, Laptop } from 'lucide-react';
+import { v4 as uuidv4 } from 'uuid';
 
 const VALID_CREDENTIALS = {
   email: 'sriram.lnrs@gmail.com',
@@ -37,6 +38,10 @@ const SignInPage = () => {
     
     if (formData.email === VALID_CREDENTIALS.email && 
         formData.password === VALID_CREDENTIALS.password) {
+      // Set HTTP-only cookie instead of localStorage
+      const authToken = uuidv4();
+      console.log(authToken);
+      document.cookie = `auth-token=${authToken}; path=/; max-age=86400${process.env.NODE_ENV === 'production' ? '; Secure; SameSite=Strict' : ''}`;
       router.push('/home');
     } else {
       setError('Invalid email or password');

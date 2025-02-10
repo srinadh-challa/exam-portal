@@ -19,6 +19,7 @@ export function showErrorToast(message: string) {
       fontWeight: "bold",
       fontSize: "16px",
       boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.3)", // Subtle shadow
+      width: "400px", // Size of the toast
     },
       icon: () => <span style={{ fontSize: "20px" }}>🚨</span>, // ✅ Fixed icon    
   });
