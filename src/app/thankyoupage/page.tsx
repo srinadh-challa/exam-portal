@@ -21,6 +21,7 @@ const ThankYouPage = () => {
         router.push("/signin");
       } catch (err) {
         setError("Navigation failed. Please use the button below.");
+        console.log(err);
       }
     }, 10000);
 
@@ -36,6 +37,7 @@ const ThankYouPage = () => {
       router.push("/signin");
     } catch (err) {
       setError("Navigation failed. Please try again.");
+      console.log(err);
     }
   };
 
